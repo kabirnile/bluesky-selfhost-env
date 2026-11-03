@@ -36,12 +36,20 @@ jobs:
       - name: Apply Docker build patches
         run: make patch-dockerbuild
 
+      - name: Redirect Image Tags to GHCR
+        run: |
+          # Replaces the default Docker Hub prefix with your GitHub registry prefix
+          # This ensures the images are pushed to your GitHub account instead of failing
+          sed -i "s|image: itaru2622/|image: ghcr.io/${{ github.repository_owner }}/|g" docker-compose-builder.yaml
+
       - name: Build images using Compose
         run: |
           export DOMAIN=build.local
+          export asof=latest
           docker compose -f docker-compose-builder.yaml build
           
       - name: Push images to GHCR
         run: |
           export DOMAIN=build.local
+          export asof=latest
           docker compose -f docker-compose-builder.yaml push
