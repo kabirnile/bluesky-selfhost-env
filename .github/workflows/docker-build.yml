@@ -1,0 +1,37 @@
+name: Build and Push All Services
+
+on:
+  push:
+    branches: [ "master", "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch source code and apply patches
+        run: make createWorkBranch
+
+      - name: Build images using Compose
+        run: |
+          # Use a local domain placeholder for the build process
+          export DOMAIN=build.local
+          docker compose -f docker-compose-builder.yaml build
+          
+      - name: Push images to GHCR
+        run: |
+          export DOMAIN=build.local
+          docker compose -f docker-compose-builder.yaml push
