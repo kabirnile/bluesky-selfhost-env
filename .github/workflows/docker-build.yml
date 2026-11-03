@@ -22,12 +22,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Fetch source code and apply patches
+      - name: Fetch source code repositories
+        run: make cloneAll
+
+      - name: Create work branches
         run: make createWorkBranch
+
+      - name: Apply Docker build patches
+        run: make patch-dockerbuild
 
       - name: Build images using Compose
         run: |
-          # Use a local domain placeholder for the build process
           export DOMAIN=build.local
           docker compose -f docker-compose-builder.yaml build
           
